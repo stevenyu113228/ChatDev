@@ -20,6 +20,7 @@ import tiktoken
 from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
 from chatdev.utils import log_visualize
+import os 
 
 try:
     from openai.types.chat import ChatCompletion
@@ -72,15 +73,23 @@ class OpenAIModel(ModelBackend):
 
         if openai_new_api:
             # Experimental, add base_url
-            if BASE_URL:
-                client = openai.OpenAI(
-                    api_key=OPENAI_API_KEY,
-                    base_url=BASE_URL,
-                )
-            else:
-                client = openai.OpenAI(
-                    api_key=OPENAI_API_KEY
-                )
+            if os.getenv("OPENAI_API_TYPE") == 'azure':
+                if BASE_URL:
+                    client = openai.AzureOpenAI(
+                        api_key=OPENAI_API_KEY,
+                        azure_endpoint=BASE_URL,
+                        api_version=os.getenv("OPENAI_API_VERSION"),
+                    )
+            else:    
+                if BASE_URL:
+                    client = openai.OpenAI(
+                        api_key=OPENAI_API_KEY,
+                        base_url=BASE_URL,
+                    )
+                else:
+                    client = openai.OpenAI(
+                        api_key=OPENAI_API_KEY
+                    )
 
             num_max_token_map = {
                 "gpt-3.5-turbo": 4096,
